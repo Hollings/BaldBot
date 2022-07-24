@@ -10,6 +10,7 @@ using Spacewood.Core.Enums;
 using Spacewood.Core.Models;
 using Spacewood.Core.System;
 using Spacewood.Unity;
+using Spacewood.Unity.MonoBehaviours.Battle;
 using Spacewood.Unity.MonoBehaviours.Board;
 using Spacewood.Unity.MonoBehaviours.Build;
 using Spacewood.Unity.UI;
@@ -17,6 +18,10 @@ using Spacewood.Unity.Views;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using SpaceWoodSpace = Spacewood.Unity.Views.Space;
+using System.Data;
+using System.IO;
+using System.Data.Sql;
+
 
 
 namespace ClassLibrary1
@@ -69,6 +74,9 @@ namespace ClassLibrary1
                 case "Menu":
                     MenuMode();
                     break;
+                case "Battle":
+                    BattleMode();
+                    break;
             }
         }
 
@@ -82,7 +90,7 @@ namespace ClassLibrary1
         MinionArmy minionArmy;
         MinionShop minionShop;
         private HangarOverlay hangarOverlay;
-        private bool turnOver = false;
+        // private bool turnOver = false;
         List<QueuedAction> queuedActions = new List<QueuedAction>();
 
         public class QueuedAction
@@ -173,7 +181,7 @@ namespace ClassLibrary1
         
         private void SetupBuild()
         {
-            turnOver = false;
+            Time.timeScale = 1f;
             queuedActions.Clear();
             LoggerInstance.Msg("setting up");
             boardController = BoardController.Instance;
@@ -183,7 +191,10 @@ namespace ClassLibrary1
             minionShop = hangar.MinionShop;
             hangarOverlay = hangar.Overlay;
             InitializeSpaces();
-            waitAction(5);
+            waitAction(3);
+            confirmShopTierUpgrade();
+            waitAction(1);
+            InitializeSpaces();
         }
         private void InitializeSpaces()
         {
@@ -290,7 +301,7 @@ namespace ClassLibrary1
 
         public void waitAction(int time)
         {
-            queuedActions.Add(new QueuedAction(() => { }, "Wait", "waitAction", time));
+            queuedActions.Add(new QueuedAction(() => { }, "Wait for " + time, "waitAction", time));
         }
         
         public bool openSpace()
@@ -315,8 +326,8 @@ namespace ClassLibrary1
 
         public void mergeAnimal(int hangarPosition1, int hangarPosition2)
         {
-            queuedActions.Add(new QueuedAction(HangarSpaces[hangarPosition1].Click, "Click", "click", 0.25f));
-            queuedActions.Add(new QueuedAction(HangarSpaces[hangarPosition2].Click, "Click", "click"));
+            queuedActions.Add(new QueuedAction(HangarSpaces[hangarPosition1].Click, "Click Hangar " + hangarPosition1, "Merge Animal", 0.25f));
+            queuedActions.Add(new QueuedAction(HangarSpaces[hangarPosition2].Click, "Click Hangar " + hangarPosition2, "Merge Animal"));
         }
         
         public void buyAnimal(int shopPosition, int hangarPosition, bool insert = false)
@@ -324,13 +335,13 @@ namespace ClassLibrary1
             
             if(insert)
             {
-                queuedActions.Insert(0, new QueuedAction(ShopSpaces[shopPosition].Click, "Click", "click", 0.25f));
-                queuedActions.Insert(1, new QueuedAction(HangarSpaces[hangarPosition].Click, "Click", "click"));
+                queuedActions.Insert(0, new QueuedAction(ShopSpaces[shopPosition].Click, "Click Shop " + shopPosition, "Buy Animal", 0.25f));
+                queuedActions.Insert(1, new QueuedAction(HangarSpaces[hangarPosition].Click, "Click Hangar " + shopPosition, "Buy Animal"));
             }
             else
             {
-                queuedActions.Add(new QueuedAction(ShopSpaces[shopPosition].Click, "Click", "click", 0.25f));
-                queuedActions.Add(new QueuedAction(HangarSpaces[hangarPosition].Click, "Click", "click"));
+                queuedActions.Add(new QueuedAction(ShopSpaces[shopPosition].Click, "Click Shop " + shopPosition, "Buy Animal", 0.25f));
+                queuedActions.Add(new QueuedAction(HangarSpaces[hangarPosition].Click, "Click Hangar " + shopPosition, "Buy Animal"));
             }
 
         }
@@ -344,11 +355,7 @@ namespace ClassLibrary1
                 {
                     buyAnimal(0,0);
                 }
-                else if (upgradeAvailable())
-                {
-                    upgradeAnimals();
-                }
-                else
+                else if (!upgradeAnimals())
                 {
                     rollShop();
                 }
@@ -417,24 +424,26 @@ namespace ClassLibrary1
             return false;
         }
         
-        public void upgradeAnimals()
+        public bool upgradeAnimals()
         {
             // upgrade from hangar
-            foreach(var hangarspace1 in HangarSpaces)
+            foreach(var hangarSpace1 in HangarSpaces)
             {
                 foreach(var hangarSpace2 in HangarSpaces)
                 {
-                    if(hangarspace1 == hangarSpace2)
+                    if(hangarSpace1 == hangarSpace2)
                     {
                         continue;
                     }
                     
-                    if (hangarspace1.animal != null && 
+                    if (hangarSpace1.animal != null && 
                         hangarSpace2.animal != null && 
-                        hangarSpace2.animal.name == hangarspace1.animal.name)
+                        hangarSpace2.animal.name == hangarSpace1.animal.name &&
+                        hangarSpace1.animal.experience < 5 &&
+                        hangarSpace2.animal.experience < 5)
                     {
-                        mergeAnimal(hangarSpace2.index, hangarspace1.index);
-                        return;
+                        mergeAnimal(hangarSpace2.index, hangarSpace1.index);
+                        return true;
                     }
                 }
             }
@@ -446,15 +455,22 @@ namespace ClassLibrary1
                 {
                     if (shopSpace.animal != null && 
                         hangarSpace.animal != null && 
-                        shopSpace.animal.name == hangarSpace.animal.name)
+                        shopSpace.animal.name == hangarSpace.animal.name &&
+                        hangarSpace.animal.experience < 5)
                     {
                         buyAnimal(shopSpace.index, hangarSpace.index, true);
-                        return;
+                        return true;
                     }
                 }
             }
+
+            return false;
         }
-        
+
+        public void confirmShopTierUpgrade()
+        {
+            queuedActions.Add(new QueuedAction(hangar.iconAlert.Confirm, "confirm", "confirm", 1));
+        }
         public void BuildArenaGui()
         {
             var consoleBackground = new Texture2D(1, 1, TextureFormat.RGBAFloat, false); 
@@ -501,11 +517,13 @@ namespace ClassLibrary1
 
         public void MenuMode()
         {
-            // clickArena();
+            clickArena();
         }
-        
+
+        public bool menuClicked = false;
         public void SetupMenu()
         {
+            menuClicked = false;
             pageManager = GameObject.FindObjectOfType<PageManager>();
             if(pageManager == null)
             {
@@ -515,19 +533,12 @@ namespace ClassLibrary1
             LoggerInstance.Msg("found pageManager " + pageManager);
             actionTimer += Time.time + 5f;
         }
-        
-        public void clickContinue()
-        {
-            foreach (Page page in pageManager.Pages)
-            {
-                if (page.name == "Lobby")
-                {
-                    page.GetComponent<Lobby>().playBox.Button.Click();
-                }
-            }
-        }
         public void clickArena()
         {
+            if (menuClicked)
+            {
+                return;
+            }
             foreach (Page page in pageManager.Pages)
             {
                 if (page.name == "Lobby")
@@ -535,6 +546,8 @@ namespace ClassLibrary1
                     page.GetComponent<Lobby>().ArenaButton.GetComponent<SelectableBase>().Click();
                 }
             }
+
+            menuClicked = true;
         }
 
         public void BuildMenuGui()
@@ -548,7 +561,27 @@ namespace ClassLibrary1
 
         public void SetupBattle()
         {
+            Time.timeScale = 4f;
             queuedActions.Clear();
+            waitAction(5);
+        }
+
+        public void BattleMode()
+        {
+            var uiBattle = UIBattle._instance;
+            var tallyArena = uiBattle.TallyArena;
+            var tallyArenaFinale = uiBattle.TallyArenaFinale;
+
+            // var tallyArenaCanvas = tallyArena.Canvas;
+            if (uiBattle != null && tallyArena != null)
+            {
+                uiBattle.TallyArena.Button.Click();
+            }
+            if (uiBattle != null && tallyArenaFinale != null)
+            {
+                uiBattle.TallyArenaFinale.Button.Click();
+            }
+            
         }
         #endregion
     }
