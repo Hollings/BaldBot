@@ -1,6 +1,8 @@
 ﻿# Bald Bot
 A self-playing Super Auto Pets AI
 
+![image](https://user-images.githubusercontent.com/3793509/180692239-e722d01b-7dd9-412a-9cae-97b5a4d0487b.png)
+
 ## Installation
 1. Download and install [MelonLoader v0.5.4 Open-Beta](https://github.com/LavaGang/MelonLoader/releases/tag/v0.5.4) into the Super Auto Pets directory
 2. Copy  `ClassLibrary1.dll` into the Super Auto Pets `Mods` directory
