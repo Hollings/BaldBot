@@ -5,7 +5,7 @@ A self-playing Super Auto Pets AI
 
 ## Installation
 1. Download and install [MelonLoader v0.5.4 Open-Beta](https://github.com/LavaGang/MelonLoader/releases/tag/v0.5.4) into the Super Auto Pets directory
-2. Copy  `ClassLibrary1.dll` into the Super Auto Pets `Mods` directory
+2. Copy  [ClassLibrary1.dll](https://github.com/Hollings/BaldBot/releases) into the Super Auto Pets `Mods` directory
 3. Run the game
 
 ## Usage
