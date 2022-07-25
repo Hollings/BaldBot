@@ -18,5 +18,7 @@ If the mod has been loaded, it will automatically perform actions during your tu
 
 ## To Do
 1. Keep a record of all enemy teams seen and use the data to make better buying and placement decisions
-2. Skip battle sequence
-3. Massive code cleanup
+2. Massive code cleanup
+3. Freeze good animals
+4. Create a UI toggle to activate the bot
+5. Better UI visualizations for action queue
