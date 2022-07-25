@@ -31,6 +31,8 @@ namespace ClassLibrary1
         public string gameState = "None";
         
         // MAIN STUFF
+
+        #region Main Stuff
         private float actionTimer = 3f;
         private static float defaultActionTime = 2f;
         private float nextActionTime = 2f;
@@ -79,6 +81,7 @@ namespace ClassLibrary1
                     break;
             }
         }
+        #endregion
 
         // BUILD MODE
         # region Build Mode
