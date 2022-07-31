@@ -1,7 +1,12 @@
 ﻿# Bald Bot
 A self-playing Super Auto Pets AI
 
-![image](https://user-images.githubusercontent.com/3793509/180692239-e722d01b-7dd9-412a-9cae-97b5a4d0487b.png)
+![image](https://user-images.githubusercontent.com/3793509/180692239-e722d01b-7dd9-412a-9cae-97b5a4d0487b.png)![image](https://user-images.githubusercontent.com/3793509/182046504-2cc85ce8-b130-482c-8e26-24d62093f97b.png)
+
+## Features
+- Endless self playing. BaldBot will play forever, starting a new match after each loss
+- Historical pickrate visualization. Each opponent's team is recorded and the data is used to show how often each pet is chosen for the current round
+
 
 ## Installation
 1. Download and install [MelonLoader v0.5.4 Open-Beta](https://github.com/LavaGang/MelonLoader/releases/tag/v0.5.4) into the Super Auto Pets directory
